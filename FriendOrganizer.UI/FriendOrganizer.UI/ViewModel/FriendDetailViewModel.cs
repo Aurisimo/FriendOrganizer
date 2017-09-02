@@ -4,6 +4,7 @@ using FriendOrganizer.UI.Event;
 using Prism.Events;
 using System.Threading.Tasks;
 using System;
+using Prism.Commands;
 
 namespace FriendOrganizer.UI.ViewModel
 {
@@ -13,11 +14,14 @@ namespace FriendOrganizer.UI.ViewModel
 
         private IEventAggregator _eventAggregator;
 
+        public DelegateCommand SaveCommand { get; }
+
         private Friend _friend;
         public Friend Friend
         {
             get { return _friend; }
-            set {
+            set
+            {
                 _friend = value;
                 OnPropertyChanged();
             }
@@ -28,6 +32,19 @@ namespace FriendOrganizer.UI.ViewModel
             _dataServise = dataSrvice;
             _eventAggregator = eventAggregator;
             _eventAggregator.GetEvent<OpenFriendDetailViewEvent>().Subscribe(OnOpenFriendDetailView);
+            SaveCommand = new DelegateCommand(OnSaveExecute, CanExecuteSave);
+        }
+
+        private bool CanExecuteSave()
+        {
+            return true;
+        }
+
+        private async void OnSaveExecute()
+        {
+            await _dataServise.SaveAsync(Friend);
+            _eventAggregator.GetEvent<AfterFriendSavedEvent>()
+                .Publish(new AfterFriendDetailSaveEventArgs { Id = Friend.Id, DisplayMember = $"{Friend.FirstName} {Friend.LastName}" });
         }
 
         private async void OnOpenFriendDetailView(int friendId)
