@@ -4,20 +4,22 @@ using FriendOrganizer.UI.Event;
 using Prism.Events;
 using System.Threading.Tasks;
 using System;
+using System.Windows.Input;
 using Prism.Commands;
+using FriendOrganizer.UI.Wrapper;
 
 namespace FriendOrganizer.UI.ViewModel
 {
-    public class FriendDetailViewModel : ModelViewBase, IFriendDetailViewModel
+    public class FriendDetailViewModel : ViewModelBase, IFriendDetailViewModel
     {
         private IFriendDataService _dataServise;
 
         private IEventAggregator _eventAggregator;
 
-        public DelegateCommand SaveCommand { get; }
+        public ICommand SaveCommand { get; }
 
-        private Friend _friend;
-        public Friend Friend
+        private FriendWrapper _friend;
+        public FriendWrapper Friend
         {
             get { return _friend; }
             set
@@ -37,12 +39,12 @@ namespace FriendOrganizer.UI.ViewModel
 
         private bool CanExecuteSave()
         {
-            return true;
+            return Friend != null && !Friend.HasErrors;
         }
 
         private async void OnSaveExecute()
         {
-            await _dataServise.SaveAsync(Friend);
+            await _dataServise.SaveAsync(Friend.Model);
             _eventAggregator.GetEvent<AfterFriendSavedEvent>()
                 .Publish(new AfterFriendDetailSaveEventArgs { Id = Friend.Id, DisplayMember = $"{Friend.FirstName} {Friend.LastName}" });
         }
@@ -54,7 +56,15 @@ namespace FriendOrganizer.UI.ViewModel
 
         public async Task LoadAsync(int friendId)
         {
-            Friend = await _dataServise.GetByIdAsync(friendId);
+            Friend = new FriendWrapper(await _dataServise.GetByIdAsync(friendId));
+            Friend.PropertyChanged += (o, a) =>
+            {
+                if (a.PropertyName == nameof(Friend.HasErrors))
+                {
+                    ((DelegateCommand)SaveCommand).RaiseCanExecuteChanged();
+                }
+            };
+            ((DelegateCommand)SaveCommand).RaiseCanExecuteChanged();
         }
     }
 }

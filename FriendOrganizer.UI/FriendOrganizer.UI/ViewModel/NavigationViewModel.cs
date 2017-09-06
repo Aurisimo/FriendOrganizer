@@ -10,7 +10,7 @@ using System.Linq;
 
 namespace FriendOrganizer.UI.ViewModel
 {
-    public class NavigationViewModel : ModelViewBase, INavigationViewModel
+    public class NavigationViewModel : ViewModelBase, INavigationViewModel
     {
         private IFriendLookupDataService _dataService;
 

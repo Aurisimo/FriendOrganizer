@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FriendOrganizer.UI.ViewModel
 {
-    public class NavigationItemViewModel : ModelViewBase
+    public class NavigationItemViewModel : ViewModelBase
     {
         public int Id { get; set; }
         private string _displayMember;
